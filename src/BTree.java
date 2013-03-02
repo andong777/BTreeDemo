@@ -1,6 +1,8 @@
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JLabel;
@@ -16,19 +18,20 @@ public class BTree extends JPanel {
 	// 控制显示的变量
 	private final int rootX = 200; // 根节点左上角的x坐标
 	private final int rootY = 20; // 根节点左上角的y坐标
-	private Graphics2D g2;
-	private int x; // 节点图形左上角的x坐标
-	private int y; // 节点图形左上角的y坐标
 	private final int HEIGHT = 10; // 节点图形的高度
 	private final int LENGTH = 15; // 节点图形中容纳每个元素的长度
 
+	private List<BTreeNode> toPaint; // 待绘制的节点
+
 	public BTree(int m) {
+		toPaint = new ArrayList<BTreeNode>(20);
 		root = new BTreeNode();
 		this.m = m;
 		mid = (int) Math.ceil(m / 2);
-		g2 = (Graphics2D) getGraphics();
+		// g2 = (Graphics2D) getGraphics();
 	}
 
+	/****************************** 以下为插入过程的代码 ******************/
 	// 向树中插入元素
 	public void insert(int v) {
 		// 如果有相同元素，插入失败。
@@ -36,40 +39,51 @@ public class BTree extends JPanel {
 			Message.SameElement();
 		else {
 
-			// 如果头结点已满，需要分裂，增加一个新的节点
-			if (root.numOfElements == m - 1) {
-				BTreeNode newNode = new BTreeNode();
-				// newNode.value[1] = root.value[mid];
-				split(newNode, 1, root);
-				root = newNode; // 让root重新指向头结点
-			}
-			// 下面对一般情况进行插入
-			p = root;
+			if (root == null) {
 
-			if (p == null)
-				return;
+				root = new BTreeNode();
+				root.setPoint(rootX, rootY);
+				
+				toPaint.add(root);
+				repaint();
 
-			while (!p.isLeaf) { // 未到达叶节点
-				int i;
-				for (i = 1; i <= p.numOfElements; i++) {
-					if (p.value[i] > v) {
-						break;
-					}
+			} else {
+
+				// 如果头结点已满，需要分裂，增加一个新的节点
+				if (root.numOfElements == m - 1) {
+					BTreeNode newNode = new BTreeNode();
+					// newNode.value[1] = root.value[mid];
+					split(newNode, 1, root);
+					root = newNode; // 让root重新指向头结点
 				}
-				BTreeNode temp;
-				// p下降至合适的位置
-				if (i <= p.numOfElements)
-					temp = p.children[i - 1];
-				else
-					temp = p.children[p.numOfElements]; // 防止越界
+				// 下面对一般情况进行插入
+				p = root;
 
-				if (temp.numOfElements == m - 1)
-					split(p, i, temp);
-				p = temp; // 下降一层
+				if (p == null)
+					return;
 
+				while (!p.isLeaf) { // 未到达叶节点
+					int i;
+					for (i = 1; i <= p.numOfElements; i++) {
+						if (p.value[i] > v) {
+							break;
+						}
+					}
+					BTreeNode temp;
+					// p下降至合适的位置
+					if (i <= p.numOfElements)
+						temp = p.children[i - 1];
+					else
+						temp = p.children[p.numOfElements]; // 防止越界
+
+					if (temp.numOfElements == m - 1)
+						split(p, i, temp);
+					p = temp; // 下降一层
+
+				}
+				// 到达叶节点，加入这个元素
+				p.add(v);
 			}
-			// 到达叶节点，加入这个元素
-			p.add(v);
 
 		}
 
@@ -173,6 +187,7 @@ public class BTree extends JPanel {
 		return false;
 	}
 
+	/****************************** 以下为删除过程的代码 **************************/
 	// 从树中删除元素
 	public void delete(int v) {
 		p = root;
@@ -215,28 +230,28 @@ public class BTree extends JPanel {
 		if (lnk.isLeaf) {
 			lnk.remove(v);
 		} else {// 在当前的节点上？
-			int i;	//找到第一个不小于v的元素的位置
+			int i; // 找到第一个不小于v的元素的位置
 			for (i = 1; i <= lnk.numOfElements; i++) {
 				if (lnk.value[i] > v)
 					break;
 			}
-			//这个位置就是v，则从子树中寻找元素代替之，然后在删除那个用来替换的元素
+			// 这个位置就是v，则从子树中寻找元素代替之，然后在删除那个用来替换的元素
 			if (i <= lnk.numOfElements && lnk.value[i] == v) {
 				BTreeNode left = lnk.children[i - 1];
 				BTreeNode right = lnk.children[i];
-				//如果左子树元素数大于最小元素数，从中寻找最大元素
+				// 如果左子树元素数大于最小元素数，从中寻找最大元素
 				if (left.numOfElements > mid - 1) {
 					BTreeNode temp = largestInLeft(left);
 					int largest = temp.value[temp.numOfElements];
 					lnk.value[i] = largest;
 					temp.remove(largest);
-					//如果右子树元素数大于最小元素数，从中寻找最小元素
+					// 如果右子树元素数大于最小元素数，从中寻找最小元素
 				} else if (right.numOfElements > mid - 1) {
 					BTreeNode temp = smallestInRight(right);
 					int smallest = temp.value[1];
 					lnk.value[i] = smallest;
 					temp.remove(smallest);
-				//合并这三个节点
+					// 合并这三个节点
 				} else {
 					merge(lnk, i, left, right);
 					deleteUnderRoot(left, v);
@@ -248,15 +263,14 @@ public class BTree extends JPanel {
 				// children【i-1】为指针应该下降的位置
 				BTreeNode right = null;
 				BTreeNode temp = lnk.children[i - 1];
-				//如果要前往的节点元素数等于最小元素数，尝试从右子树借元素
+				// 如果要前往的节点元素数等于最小元素数，尝试从右子树借元素
 				if (temp.numOfElements == mid - 1) {
 					if (i < lnk.numOfElements) {
 						right = lnk.children[i + 1];
 						this.borrowElement(temp, lnk, i, right);
-					}
-					else{	//借元素失败，合并这三个节点
+					} else { // 借元素失败，合并这三个节点
 						this.merge(lnk, i, temp, right);
-						
+
 					}
 				}
 
@@ -331,13 +345,65 @@ public class BTree extends JPanel {
 		return temp;
 	}
 
-	// 下面是内部类B树节点的代码
+	/****************************** 绘图方法 **********************/
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+
+		Iterator toPaintIterator = toPaint.iterator();
+		if (toPaintIterator.hasNext()) {
+
+			BTreeNode cur = (BTreeNode) toPaintIterator.next(); // 指向当前要绘制的节点
+			BTreeNode last = cur; // 指向上一个节点
+			int x = cur.getPoint().getX();
+			int y = cur.getPoint().getY();
+			// 绘制节点
+			g.setColor(cur.color);
+			g.drawRect(x, y, LENGTH, HEIGHT);
+
+			while (toPaintIterator.hasNext()) {
+
+				cur = (BTreeNode) toPaintIterator.next();
+
+				// 绘制节点
+				x = cur.getPoint().getX();
+				y = cur.getPoint().getY();
+				g.setColor(cur.color);
+				g.drawRect(x, y, LENGTH, HEIGHT);
+				
+				//绘制节点中的元素
+				StringBuilder builder = new StringBuilder();
+				for(int i=1;i<=cur.numOfElements;i++){
+					builder.append(" "+cur.value[i]);
+				}
+				String s = builder.toString();
+				g.drawString(s, x, y+HEIGHT/2);
+				
+				// 绘制当前节点和上一个节点间的连线
+				x = cur.midpoint().getX();
+				y = cur.midpoint().getY();
+				int x2 = last.midpoint().getX();
+				int y2 = last.midpoint().getY()+HEIGHT;
+				g.setColor(Color.BLACK);
+				g.drawLine(x, y, x2, y2);
+				
+				last = cur; // 更新last值
+			}
+		}
+
+	}
+
+	/*************************** 节点类 **********************/
 	class BTreeNode {
 		// 存储节点的变量
 		private int[] value; // 元素值
 		private BTreeNode[] children; // 子节点
 		private boolean isLeaf; // 是否为叶节点
 		private int numOfElements; // 当前节点中的元素数
+		// 控制显示的变量
+		private Color color; // 边框颜色
+		// 坐标
+		private int x;
+		private int y;
 
 		public BTreeNode() {
 			isLeaf = true;
@@ -382,5 +448,23 @@ public class BTree extends JPanel {
 			numOfElements -= 1;
 		}
 
+		// 设置坐标的方法
+		public void setPoint(int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+
+		// 返回节点的左上角坐标
+		public Point getPoint() {
+
+			return new Point(x, y);
+		}
+
+		// 求上部中点坐标
+		public Point midpoint() {
+
+			return new Point(x + LENGTH * numOfElements / 2, y);
+		}
+		
 	}
 }

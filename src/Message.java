@@ -24,4 +24,8 @@ public class Message {
 	public static void EndSearch(){
 		JOptionPane.showMessageDialog(null, "找到此元素，搜索结束！");
 	}
+	//程序出现未知错误
+	public static void UnknownError(){
+		JOptionPane.showMessageDialog(null, "程序发生未知错误，请尝试重新运行本演示程序！");
+	}
 }

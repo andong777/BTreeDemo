@@ -102,24 +102,27 @@ class MyFrame extends JFrame {
 					data = Integer.parseInt(text.getText());
 				} catch (NumberFormatException e) {
 					// TODO Auto-generated catch block
-					JOptionPane.showMessageDialog(null,
-							"您输入的数据： " + text.getText() + " 不符合要求！\n请重新输入。");
+//					JOptionPane.showMessageDialog(null,
+//							"您输入的数据： " + text.getText() + " 不符合要求！\n请重新输入。");
+					Message.IllegalInput(text.getText());
 				}
 				if (insert.isSelected()) {
 					// InsertPanel = new InsertDemo();
 					// DemoPanel.add(InsertPanel, BorderLayout.CENTER);
 				} else if (search.isSelected()) {
 					if (count == 0) {
-						JOptionPane
-								.showMessageDialog(null, "请先插入至少一个元素再执行其他操作");
+//						JOptionPane
+//								.showMessageDialog(null, "请先插入至少一个元素再执行其他操作");
+						Message.AtLeastOneElement();
 					} else {
 						// SearchPanel = new SearchDemo();
 						// DemoPanel.add(SearchPanel, BorderLayout.CENTER);
 					}
 				} else if (delete.isSelected()) {
 					if (count == 0) {
-						JOptionPane
-								.showMessageDialog(null, "请先插入至少一个元素再执行其他操作");
+//						JOptionPane
+//								.showMessageDialog(null, "请先插入至少一个元素再执行其他操作");
+						Message.AtLeastOneElement();
 					} else {
 						// DeletePanel = new DeleteDemo();
 						// DemoPanel.add(DeletePanel, BorderLayout.CENTER);
