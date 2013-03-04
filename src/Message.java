@@ -5,7 +5,7 @@ public class Message {
 	//非法输入
 	public static void IllegalInput(String s){
 		JOptionPane.showMessageDialog(null,
-				"您输入的数据： " + s + " 不符合要求！\n请重新输入。");
+				"您输入的数据： “" + s + "” 不符合要求！\n请重新输入。");
 	}
 	//需要至少有一个元素
 	public static void AtLeastOneElement(){
