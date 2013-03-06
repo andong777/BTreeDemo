@@ -25,9 +25,9 @@ public class Counter {
 		if (m % 2 == 1) {
 
 			if (pos <= (m + 1) / 2) {
-				dis = 6 * pos / (m + 1) - 3;
+				dis = (int) (6 * pos / (m + 1.0) - 3);
 			} else {
-				dis = (6 * pos - 6) / (m - 1) - 3;
+				dis = (int) ((6 * pos - 6) / (m - 1.0) - 3);
 			}
 
 		}
@@ -35,12 +35,12 @@ public class Counter {
 		else {
 
 			if (pos <= m / 2) {
-				dis = (6 * pos - 6) / (m - 2) - 3;
+				dis = (int) ((4 * pos - 4) / (m - 2.0) - 3);
 			} else {
-				dis = (6 * pos - 12) / (m - 2) - 3;
+				dis = (int) ((4 * pos - 8) / (m - 2.0) - 1);
 			}
 		}
-		return dis * HEIGHT;
+		return dis * HEIGHT*2;
 	}
 
 	// 返回直线的始端
@@ -58,6 +58,6 @@ public class Counter {
 	// 返回下一个节点与上一个节点间的相对距离
 	public int getNextPos(int posInArray, int num) {
 
-		return getEndPos(posInArray) - num * LENGTH / 2;
+		return (int) (getEndPos(posInArray) - num * LENGTH / 2.0);
 	}
 }

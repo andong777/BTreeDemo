@@ -18,6 +18,8 @@ public class MainWindow {
 			public void run() {
 				MyFrame frame;
 				try {
+					UIManager.setLookAndFeel(UIManager
+							.getSystemLookAndFeelClassName());
 					frame = new MyFrame();
 					frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 					frame.setVisible(true);
@@ -42,7 +44,10 @@ class MyFrame extends JFrame {
 	private JLabel TitleLabel;
 	private JLabel InfoLabel;
 	private JLabel WordsLabel;
+	private JButton OptionButton;
 	private JButton StartButton;
+	private JButton ResetButton;
+	private JButton ReplayButton;
 	private ButtonGroup Group;
 	private JRadioButton insert;
 	private JRadioButton search;
@@ -50,27 +55,24 @@ class MyFrame extends JFrame {
 	private JTextField text;
 	private JComboBox box;
 	private final Welcome welcome;
-	
+
 	// 存储数据的变量
 	private int m = 4; // m叉B树中的m值
 	private int data; // 来自文本域text的数据
-	private int count = 0; // 计数树中已有的元素个数
-	
-	private BTree btree;	//生成一颗B树
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	
-	//用来重绘
-	private void myPaintAll()
-	{
+	private BTree btree; // 生成一颗B树
+
+	// 用来重绘
+	private void myPaintAll() {
 		this.paintAll(getGraphics());
 	}
-	
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public MyFrame() {
-		
-		//生成B树
-		btree = new BTree(m);
-				
+
+		// 生成B树
+		btree = null;
+
 		// 设置窗体属性
 		setTitle("B树演示程序");
 		Toolkit kit = Toolkit.getDefaultToolkit();
@@ -83,7 +85,7 @@ class MyFrame extends JFrame {
 
 		Image img = kit.getImage(".//pic//icon.png");
 		setIconImage(img);
-		
+
 		setLayout(new BorderLayout());
 
 		// 以下为窗体布局
@@ -111,53 +113,87 @@ class MyFrame extends JFrame {
 		insert = new JRadioButton("插入");
 		search = new JRadioButton("搜索");
 		delete = new JRadioButton("删除");
+		OptionButton = new JButton("设置");
 		StartButton = new JButton("确定");
+		ResetButton = new JButton("重置");
+		ReplayButton = new JButton("回放");
 		insert.setSelected(true);
-		StartButton.setEnabled(false);	//开始时不能点击，看完开始屏幕后才可以点击
-		
+
 		// 按钮的事件监听器，处理选择操作和接收数据
-		StartButton.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				box.setEnabled(false);
-				try {
-					data = Integer.parseInt(text.getText());
-				} catch (NumberFormatException e) {
-					// TODO Auto-generated catch block
-					// JOptionPane.showMessageDialog(null,
-					// "您输入的数据： " + text.getText() + " 不符合要求！\n请重新输入。");
-					Message.IllegalInput(text.getText());
-				}
-				if (insert.isSelected()) {
+		ReplayButton.addActionListener(new ActionListener() {
 
-					btree.insert(data);
-					
-				} else if (search.isSelected()) {
-					if (count == 0) {
-						// JOptionPane
-						// .showMessageDialog(null, "请先插入至少一个元素再执行其他操作");
-						Message.AtLeastOneElement();
-						
-					} else {
-
-						btree.search(data);
-						
-					}
-				} else if (delete.isSelected()) {
-					if (count == 0) {
-						// JOptionPane
-						// .showMessageDialog(null, "请先插入至少一个元素再执行其他操作");
-						Message.AtLeastOneElement();
-						
-					} else {
-
-						btree.delete(data);
-						
-					}
-				}
+			@Override
+			public void actionPerformed(ActionEvent e) {
 
 			}
 		});
-		
+		ResetButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// btree.reset();
+				btree = null;
+				DemoPanel.removeAll();
+				box.setEnabled(true);
+				OptionButton.setEnabled(true);
+				DemoPanel.repaint();
+				myPaintAll();
+			}
+		});
+		OptionButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					m = (int) box.getSelectedItem();
+				} catch (Exception e1) {
+					m = 4;
+				}
+				btree = new BTree(m);
+				DemoPanel.add(btree, BorderLayout.CENTER);
+				DemoPanel.repaint();
+				myPaintAll();
+				box.setEnabled(false);
+				OptionButton.setEnabled(false);
+			}
+		});
+		StartButton.addActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent evt) {
+				StartButton.setEnabled(false);
+				insert.setEnabled(false);
+				search.setEnabled(false);
+				delete.setEnabled(false);
+				text.setEnabled(true);
+				if (btree == null) {
+					Message.SelectMFirst();
+				} else {
+					try {
+						data = Integer.parseInt(text.getText());
+						if (insert.isSelected()) {
+
+							btree.insert(data);
+						} else if (search.isSelected()) {
+							btree.search(data);
+						} else if (delete.isSelected()) {
+							btree.delete(data);
+						}
+					} catch (NumberFormatException e) {
+
+						Message.IllegalInput(text.getText());
+					}
+					StartButton.setEnabled(true);
+					insert.setEnabled(true);
+					search.setEnabled(true);
+					delete.setEnabled(true);
+					text.setEnabled(true);
+					//自动清空文本框，获取焦点
+					text.setText(null);
+					text.requestFocus();
+					repaint();
+				}
+			}
+		});
+
 		Group.add(insert);
 		Group.add(search);
 		Group.add(delete);
@@ -165,50 +201,42 @@ class MyFrame extends JFrame {
 		text = new JTextField();
 
 		box = new JComboBox();
-		box.setEditable(false);
-		box.addItem("2");
-		box.addItem("3");
-		box.addItem("4");
-		box.addItem("5");
-		box.addItem("6");
-		box.addActionListener(new ActionListener() {
+		// box.setEditable(false);
+		// box.addItem(2);
+		box.addItem(4);
+		box.addItem(3);
+		box.addItem(5);
+		box.addItem(6);
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				try {
-					m = (int) box.getSelectedItem();
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					m = 4;
-				}
-			}
-
-		});
-		
-		//使用Box布局，使得所有组件自上向下依次排列
+		// 使用Box布局，使得所有组件自上向下依次排列
 		OptionPanel.setLayout(new BoxLayout(OptionPanel, BoxLayout.Y_AXIS));
 
-		OptionPanel.add(new Blank(3));
+		OptionPanel.add(new Blank(2));
 		OptionPanel.add(new JLabel("请选择B树的叉数："));
 		OptionPanel.add(new Blank(1));
 		OptionPanel.add(new JLabel("（默认为4）"));
 		OptionPanel.add(new Blank(1));
 		OptionPanel.add(box);
-		
+		OptionPanel.add(new Blank(1));
+		OptionPanel.add(OptionButton);
 		OptionPanel.add(new Blank(3));
+		OptionPanel.add(ResetButton);
+		OptionPanel.add(new Blank(1));
+		OptionPanel.add(ReplayButton);
+		OptionPanel.add(new Blank(3));
+
 		WordsLabel = new JLabel("请选择操作：");
 		OptionPanel.add(new Blank(2));
 		OptionPanel.add(WordsLabel);
 		OptionPanel.add(insert);
 		OptionPanel.add(search);
 		OptionPanel.add(delete);
-		
-		OptionPanel.add(new Blank(4));
+
+		OptionPanel.add(new Blank(3));
 		OptionPanel.add(new JLabel("请输入操作数："));
 		OptionPanel.add(new Blank(2));
 		OptionPanel.add(text);
-		OptionPanel.add(new Blank(4));
+		OptionPanel.add(new Blank(1));
 		OptionPanel.add(StartButton);
 		OptionPanel.add(new Blank(3));
 
@@ -219,50 +247,60 @@ class MyFrame extends JFrame {
 				javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION,
 				javax.swing.border.TitledBorder.DEFAULT_POSITION, null,
 				new Color(0, 0, 0)));
-		
+
 		welcome = new Welcome();
-		DemoPanel.add(welcome,BorderLayout.CENTER);
-		//加入鼠标监听事件
-		welcome.addMouseListener(new MouseAdapter(){
-			public void mouseClicked(MouseEvent e){
+		DemoPanel.add(welcome, BorderLayout.CENTER);
+
+		// 开始时不能点击按钮和下拉框，点击屏幕后继续
+		OptionButton.setEnabled(false);
+		StartButton.setEnabled(false);
+		box.setEnabled(false);
+		insert.setEnabled(false);
+		search.setEnabled(false);
+		delete.setEnabled(false);
+		text.setEnabled(false);
+
+		// 加入鼠标监听事件
+		welcome.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				OptionButton.setEnabled(true);
 				StartButton.setEnabled(true);
-//				DemoPanel.remove(welcome);
+				box.setEnabled(true);
+				insert.setEnabled(true);
+				search.setEnabled(true);
+				delete.setEnabled(true);
+				text.setEnabled(true);
+
+				// DemoPanel.remove(welcome);
 				DemoPanel.removeAll();
-//				DemoPanel.repaint();
-				DemoPanel.add(btree,BorderLayout.CENTER);
 				DemoPanel.repaint();
-				myPaintAll();
+				welcome.addMouseListener(null);
 			}
 		});
-		
-	
-		
-		//加入提示文字闪烁的功能
-		new Thread(new Runnable(){
+
+		// 加入提示文字闪烁的功能
+		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
 				boolean b = true;
-				while(true){
+				while (true) {
 					try {
-						Thread.sleep(500);
+						Thread.sleep(300);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					welcome.repaint();
-//					DemoPanel.repaint();
+					// DemoPanel.repaint();
 					b = !b;
 					welcome.setToPanit(b);
 				}
 			}
-			
-			
+
 		}).start();
 
 	}
-	
-	
 
 }

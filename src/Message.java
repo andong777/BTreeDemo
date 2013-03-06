@@ -28,4 +28,8 @@ public class Message {
 	public static void UnknownError(){
 		JOptionPane.showMessageDialog(null, "程序发生未知错误，请尝试重新运行本演示程序！");
 	}
+	//先选择m的值再进行操作
+	public static void SelectMFirst(){
+		JOptionPane.showMessageDialog(null, "请先选择m值，然后点击设置继续");
+	}
 }

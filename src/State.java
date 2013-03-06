@@ -6,5 +6,6 @@ public enum State {
 	inserted, searched, deleted, // 完成...
 	split,	//分裂节点
 	merge,	//合并节点
-	borrow;	//从右兄弟一个借元素
+	borrow,	//从右兄弟一个借元素
+	largest,smallest;	//正在从...中寻找最..值
 }
