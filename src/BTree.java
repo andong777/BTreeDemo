@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -27,14 +28,19 @@ public class BTree extends JPanel {
 	private int node; // 记录要前往的节点标号
 	// 控制显示的变量
 	private State state; // 表示当前执行操作的状态，用于显示提示语
-	private final int TIME = 500;
+	private final int TIME = 1500;
 	private final int rootX = 500; // 根节点左上角的x坐标
 	private final int rootY = 40; // 根节点左上角的y坐标
 	private final int HEIGHT = 20; // 节点图形的高度
 	private final int LENGTH = 20; // 节点图形中容纳每个元素的长度
-	private Stack<BTreeNode> stack; // 用于存放节点的 队列
+	private Stack<BTreeNode> stack; // 用于存放节点的栈
+
+	// private JFrame f;
+	// private Graphics g;
 
 	public BTree(int m) {
+
+		// f = frame;
 		data = 0; // 无意义，下同
 		node = 0;
 		state = State.wait;
@@ -48,8 +54,14 @@ public class BTree extends JPanel {
 		// root.add(20);
 		// stack.push(root);
 		repaint();
+
 	}
 
+	// public void myPaint(){
+	// repaint();
+	// f.paintAll(g);
+	//
+	// }
 	public void reset() {
 		root = null;
 		state = State.wait;
@@ -70,6 +82,8 @@ public class BTree extends JPanel {
 		state = State.insert;
 		data = v;
 		repaint();
+		paintAll(getGraphics());
+
 		// 如果有相同元素，插入失败。
 		if (shortSearch(v))
 			Message.SameElement();
@@ -93,6 +107,7 @@ public class BTree extends JPanel {
 				root.isLeaf = false;
 				Recount();
 				repaint();
+
 			}
 			// 下面对一般情况进行插入
 			p = root;
@@ -105,23 +120,25 @@ public class BTree extends JPanel {
 				// 高亮效果
 				p.color = Color.RED;
 				repaint();
+				paintAll(getGraphics());
+
 				try {
 					Thread.sleep(TIME);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				p.color = Color.BLACK;
 				repaint();
+				paintAll(getGraphics());
 
 				int i;
 				for (i = 1; i <= p.numOfElements; i++) {
 					p.ElementHighlightIdx = i;
 					repaint();
+					paintAll(getGraphics());
 					try {
 						Thread.sleep(TIME);
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					if (p.value[i] > v) {
@@ -130,19 +147,21 @@ public class BTree extends JPanel {
 				}
 				p.ElementHighlightIdx = -1;
 				repaint();
+				paintAll(getGraphics());
 
 				BTreeNode temp;
 				state = State.go;
 				// p下降至合适的位置
 				if (i <= p.numOfElements) {
 					temp = p.children[i - 1];
-					p.lineHighlightIdx = i;
-					node = i;
+					p.lineHighlightIdx = i-1;
+					node = i-1;
 					repaint();
+					paintAll(getGraphics());
+
 					try {
 						Thread.sleep(TIME);
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				} else {
@@ -150,23 +169,24 @@ public class BTree extends JPanel {
 					p.lineHighlightIdx = p.numOfElements;
 					node = p.numOfElements;
 					repaint();
+					paintAll(getGraphics());
 					try {
 						Thread.sleep(TIME);
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
 				p.lineHighlightIdx = -1;
 				repaint();
+				paintAll(getGraphics());
 
 				if (temp.numOfElements == m - 1) {
 					split(p, i, temp);
 					Recount();
 					p = root;
-				}else
+				} else
 					p = temp;
-				
+
 			}
 			// 到达叶节点，加入这个元素
 			p.add(v);
@@ -174,6 +194,7 @@ public class BTree extends JPanel {
 
 		state = State.inserted;
 		repaint();
+		paintAll(getGraphics());
 
 	}
 
@@ -206,38 +227,41 @@ public class BTree extends JPanel {
 		}
 		// 修改newNode值
 		newNode.numOfElements = m - 1 - mid;
-		
+
 		newNode.isLeaf = (newNode.children[0] == null);
-		
+
 	}
 
 	// 从树中搜索元素,并返回真值
 	public void search(int v) {
 		// 更新提示语
-		state = State.search;
-		data = v;
 
 		p = root;
-
 		if (p == null) {
 			Message.AtLeastOneElement();
 			return;
 		}
+
+		state = State.search;
+		data = v;
 		while (p != null) {
 			int i;
 			for (i = 1; i <= p.numOfElements; i++) {
 				p.ElementHighlightIdx = i;
 				repaint();
+				paintAll(getGraphics());
 				try {
 					Thread.sleep(TIME);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				// 找到该元素
 				if (p.value[i] == v) {
 					p.ElementHighlightIdx = -1;
+					p.lineHighlightIdx = -1;
+					state = State.searched;
 					repaint();
+					paintAll(getGraphics());
 					// Message.EndSearch();
 					return;
 				}
@@ -247,35 +271,43 @@ public class BTree extends JPanel {
 			state = State.go;
 			// p下降至合适的位置
 			if (i <= p.numOfElements) {
-				p.lineHighlightIdx = i;
+				p.lineHighlightIdx = i - 1;
 				node = i;
 				repaint();
+				paintAll(getGraphics());
 				try {
 					Thread.sleep(TIME);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				p.lineHighlightIdx = -1;
+				repaint();
+				paintAll(getGraphics());
 				p = p.children[i - 1];
 			} else {
 				p.lineHighlightIdx = p.numOfElements;
 				node = p.numOfElements;
 				repaint();
+				paintAll(getGraphics());
 				try {
 					Thread.sleep(TIME);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				p.lineHighlightIdx = -1;
+				repaint();
+				paintAll(getGraphics());
 				p = p.children[p.numOfElements]; // 防止越界
 			}
-			p.lineHighlightIdx = -1;
-			state = State.searched;
-			repaint();
+
 		}
 
 		// 仍然未找到，弹出对话框
 		Message.NoSuchElement(v);
+
+		state = State.searched;
+		repaint();
+		paintAll(getGraphics());
 	}
 
 	// 不带动画的搜索
@@ -311,15 +343,15 @@ public class BTree extends JPanel {
 	// 从树中删除元素
 	public void delete(int v) {
 		// 更新提示语
-		state = State.delete;
-		data = v;
 
 		p = root;
-
 		if (p == null) {
 			Message.AtLeastOneElement();
 			return;
 		}
+
+		state = State.delete;
+		data = v;
 		// 未找到此元素
 		if (!shortSearch(v)) {
 			Message.NoSuchElement(v);
@@ -348,6 +380,7 @@ public class BTree extends JPanel {
 			}
 			state = State.deleted;
 			repaint();
+			paintAll(getGraphics());
 		}
 	}
 
@@ -361,18 +394,18 @@ public class BTree extends JPanel {
 			for (i = 1; i <= lnk.numOfElements; i++) {
 				lnk.ElementHighlightIdx = i;
 				repaint();
+				paintAll(getGraphics());
 				try {
 					Thread.sleep(TIME);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				if (lnk.value[i] >= v)
 					break;
 			}
 			lnk.ElementHighlightIdx = -1;
-			System.out.println("i is "+ i);
 			repaint();
+			paintAll(getGraphics());
 			// 这个位置就是v，则从子树中寻找元素代替之，然后在删除那个用来替换的元素
 			if (i <= lnk.numOfElements && lnk.value[i] == v) {
 				BTreeNode left = lnk.children[i - 1];
@@ -380,30 +413,30 @@ public class BTree extends JPanel {
 				// 如果左子树元素数大于最小元素数，从中寻找最大元素
 				if (left != null && left.numOfElements > mid - 1) {
 					BTreeNode p = left;
-					while(p.children[0]!=null){
+					while (p.children[0] != null) {
 						p = p.children[p.numOfElements];
 					}
 					int original = lnk.value[i];
 					int largest = p.value[p.numOfElements];
 					p.value[p.numOfElements] = lnk.value[i];
 					lnk.value[i] = largest;
-//					deleteUnderRoot(root, original);
+					 deleteUnderRoot(p, original);
 //					delete(original);
-					System.out.println(original);
-					p.remove(original);
+					// System.out.println(original);
+					// p.remove(original);
 					// 如果右子树元素数大于最小元素数，从中寻找最小元素
 				} else if (right != null && right.numOfElements > mid - 1) {
 					BTreeNode p = right;
-					while(p.children[0]!=null){
+					while (p.children[0] != null) {
 						p = p.children[0];
 					}
 					int original = lnk.value[i];
 					int smallest = p.value[1];
 					p.value[1] = lnk.value[i];
 					lnk.value[i] = smallest;
-//					deleteUnderRoot(root, original);
+					 deleteUnderRoot(p, original);
 //					delete(original);
-					p.remove(original);
+					// p.remove(original);
 					// 合并这三个节点
 				} else {
 					merge(lnk, i, left, right);
@@ -419,7 +452,13 @@ public class BTree extends JPanel {
 				if (temp.numOfElements == mid - 1) {
 					if (i <= lnk.numOfElements) {
 						right = lnk.children[i];
-						this.borrowElement(temp, lnk, i, right);
+						if (right.numOfElements > mid - 1) {
+							System.out.println("right num:"
+									+ right.numOfElements);
+							this.borrowElement(temp, lnk, i, right);
+						} else {
+							this.merge(lnk, i, temp, right);
+						}
 					} else { // 借元素失败，合并这三个节点
 						this.merge(lnk, i, temp, right);
 
@@ -471,10 +510,11 @@ public class BTree extends JPanel {
 				left.children[left.numOfElements + 1 + i] = right.children[i];
 			}
 		}
-		//修改left的元素数
-		left.numOfElements += 1 +right.numOfElements;
+		// 修改left的元素数
+		left.numOfElements += 1 + right.numOfElements;
 		// 修改parent的孩子，即pos之后的向前移动一位
-		for (int i = pos; i <= parent.numOfElements; i++) {
+		for (int i = pos; i < parent.numOfElements; i++) {
+			parent.value[i] = parent.value[i + 1];
 			parent.children[i] = parent.children[i + 1];
 		}
 		// 修改parent的元素数
@@ -485,7 +525,7 @@ public class BTree extends JPanel {
 	public BTreeNode largestInLeft(BTreeNode lnk) {
 		state = State.largest;
 		BTreeNode temp = lnk;
-		while (temp.children[0]!=null) {
+		while (temp.children[0] != null) {
 			temp = temp.children[temp.numOfElements];
 		}
 		return temp;
@@ -495,7 +535,7 @@ public class BTree extends JPanel {
 	public BTreeNode smallestInRight(BTreeNode lnk) {
 		state = State.smallest;
 		BTreeNode temp = lnk;
-		while (temp.children[0]!=null) {
+		while (temp.children[0] != null) {
 			temp = temp.children[0];
 		}
 		return temp;
@@ -537,7 +577,7 @@ public class BTree extends JPanel {
 			g.drawString("正在删除 ： " + data, 10, 50);
 			break;
 		case go:
-			g.drawString("正在前往第 " + node + " 个节点", 10, 50);
+			g.drawString("正在前往第 " + (node + 1) + " 个节点", 10, 50);
 			break;
 		case inserted:
 			g.drawString("完成插入！", 10, 50);
@@ -569,13 +609,13 @@ public class BTree extends JPanel {
 			p = stack.pop();
 			if (p == null)
 				return;
-			g.setColor(p.color);
+
 			int x = p.getPoint().getX();
 			int y = p.getPoint().getY();
 
 			if (p.numOfElements > 0) {
 				// 画节点p
-
+				g.setColor(p.color);
 				g.drawRect(x, y, LENGTH * p.numOfElements, HEIGHT);
 
 				// 画节点中的元素
@@ -614,6 +654,10 @@ public class BTree extends JPanel {
 
 	// 辅助定位，自动重新计算所有的节点的坐标
 	public void Recount() {
+		if (root.numOfElements == 0) {
+			root = null;
+			return;
+		}
 		BTreeNode p = null;
 		BTreeNode pp = null;
 		stack.push(root);
@@ -628,11 +672,12 @@ public class BTree extends JPanel {
 
 				for (int i = 0; i <= p.numOfElements; i++) {
 					pp = p.children[i];
-					if(pp==null){
+					if (pp == null) {
 						break;
 					}
 					int x = cnt.getNextPos(i, pp.numOfElements);
-					pp.setPoint(x + p.getPoint().getX(), p.getPoint().getY() + 3 * HEIGHT);
+					pp.setPoint(x + p.getPoint().getX(), p.getPoint().getY()
+							+ 3 * HEIGHT);
 					stack.push(pp);
 				}
 
@@ -661,18 +706,14 @@ public class BTree extends JPanel {
 			this.x = x;
 			this.y = y;
 
-			// lineColor = new Color[m];
-			// for (int i = 0; i < m; i++) {
-			// lineColor[i] = Color.BLACK;
-			// }
 			color = Color.BLACK; // 默认边框为黑色
 			this.lineHighlightIdx = -1; // 默认无高亮，下同
 			this.ElementHighlightIdx = -1;
 
 			isLeaf = true;
 			numOfElements = 0;
-			value = new int[m]; // 从1开始，到m-1，零空缺
-			children = new BTreeNode[m]; // 从0开始到m-1位置，第i位置表示比i处元素大，比i+1处小
+			value = new int[m + 1]; // 从1开始，到m-1，零空缺
+			children = new BTreeNode[m + 1]; // 从0开始到m-1位置，第i位置表示比i处元素大，比i+1处小
 			// 初始化数组
 			for (int i = 1; i <= m - 1; i++)
 				value[i] = 0;
@@ -685,13 +726,14 @@ public class BTree extends JPanel {
 			int i;
 			this.color = Color.RED;
 			repaint();
+			paintAll(getGraphics());
 			for (i = 1; i <= numOfElements; i++) {
 				this.ElementHighlightIdx = i;
 				repaint();
+				paintAll(getGraphics());
 				try {
 					Thread.sleep(TIME);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				if (value[i] > v)
@@ -700,6 +742,7 @@ public class BTree extends JPanel {
 			this.ElementHighlightIdx = -1;
 			color = Color.BLACK;
 			repaint();
+			paintAll(getGraphics());
 			// 插入v到第i位
 			for (int j = numOfElements; j >= i; j--) {
 				// 加入移动的代码
@@ -719,10 +762,10 @@ public class BTree extends JPanel {
 			for (i = 1; i <= numOfElements; i++) {
 				this.ElementHighlightIdx = i;
 				repaint();
+				paintAll(getGraphics());
 				try {
 					Thread.sleep(TIME);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				if (value[i] == v)
@@ -730,6 +773,7 @@ public class BTree extends JPanel {
 			}
 			this.ElementHighlightIdx = -1;
 			repaint();
+			paintAll(getGraphics());
 			if (i > numOfElements)
 				return;
 

@@ -9,6 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import javax.swing.*;
 
@@ -48,6 +50,7 @@ class MyFrame extends JFrame {
 	private JButton StartButton;
 	private JButton ResetButton;
 	private JButton ReplayButton;
+	private JButton RandomButton;
 	private ButtonGroup Group;
 	private JRadioButton insert;
 	private JRadioButton search;
@@ -59,7 +62,7 @@ class MyFrame extends JFrame {
 	// 存储数据的变量
 	private int m = 4; // m叉B树中的m值
 	private int data; // 来自文本域text的数据
-
+	private Queue<Record> records;	//记录B树生成的过程
 	private BTree btree; // 生成一颗B树
 
 	// 用来重绘
@@ -72,7 +75,8 @@ class MyFrame extends JFrame {
 
 		// 生成B树
 		btree = null;
-
+		//生成记录
+		records = new LinkedList<Record>();
 		// 设置窗体属性
 		setTitle("B树演示程序");
 		Toolkit kit = Toolkit.getDefaultToolkit();
@@ -113,18 +117,42 @@ class MyFrame extends JFrame {
 		insert = new JRadioButton("插入");
 		search = new JRadioButton("搜索");
 		delete = new JRadioButton("删除");
-		OptionButton = new JButton("设置");
-		StartButton = new JButton("确定");
+		OptionButton = new JButton("应用");
+		StartButton = new JButton("开始");
 		ResetButton = new JButton("重置");
 		ReplayButton = new JButton("回放");
+		RandomButton = new JButton("随机生成");
 		insert.setSelected(true);
 
 		// 按钮的事件监听器，处理选择操作和接收数据
+		RandomButton.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				
+			}
+			
+		});
 		ReplayButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
+				if(records.isEmpty()){
+					Message.AtLeastOneElement();
+					return;
+				}
+				btree.reset();
+				while(!records.isEmpty()){
+					Record temp = records.remove();
+					int data = temp.getData();
+					State op = temp.getOp();
+					switch(op){
+					case insert:btree.insert(data);break;
+					case delete:btree.delete(data);break;
+					case search:btree.search(data);break;
+					}
+				}
 			}
 		});
 		ResetButton.addActionListener(new ActionListener() {
@@ -136,6 +164,12 @@ class MyFrame extends JFrame {
 				DemoPanel.removeAll();
 				box.setEnabled(true);
 				OptionButton.setEnabled(true);
+				StartButton.setEnabled(true);
+				RandomButton.setEnabled(true);
+				text.setEnabled(true);
+				insert.setEnabled(true);
+				search.setEnabled(true);
+				delete.setEnabled(true);
 				DemoPanel.repaint();
 				myPaintAll();
 			}
@@ -170,27 +204,29 @@ class MyFrame extends JFrame {
 					try {
 						data = Integer.parseInt(text.getText());
 						if (insert.isSelected()) {
-
+							records.add(new Record(State.insert,data));
 							btree.insert(data);
 						} else if (search.isSelected()) {
+							records.add(new Record(State.search,data));
 							btree.search(data);
 						} else if (delete.isSelected()) {
+							records.add(new Record(State.delete,data));
 							btree.delete(data);
 						}
 					} catch (NumberFormatException e) {
 
 						Message.IllegalInput(text.getText());
 					}
-					StartButton.setEnabled(true);
-					insert.setEnabled(true);
-					search.setEnabled(true);
-					delete.setEnabled(true);
-					text.setEnabled(true);
-					//自动清空文本框，获取焦点
-					text.setText(null);
-					text.requestFocus();
-					repaint();
 				}
+				StartButton.setEnabled(true);
+				insert.setEnabled(true);
+				search.setEnabled(true);
+				delete.setEnabled(true);
+				text.setEnabled(true);
+				//自动清空文本框，获取焦点
+				text.setText(null);
+				text.requestFocus();
+				repaint();
 			}
 		});
 
@@ -204,7 +240,7 @@ class MyFrame extends JFrame {
 		// box.setEditable(false);
 		// box.addItem(2);
 		box.addItem(4);
-		box.addItem(3);
+//		box.addItem(3);
 		box.addItem(5);
 		box.addItem(6);
 
@@ -219,12 +255,14 @@ class MyFrame extends JFrame {
 		OptionPanel.add(box);
 		OptionPanel.add(new Blank(1));
 		OptionPanel.add(OptionButton);
-		OptionPanel.add(new Blank(3));
+		OptionPanel.add(new Blank(1));
 		OptionPanel.add(ResetButton);
 		OptionPanel.add(new Blank(1));
 		OptionPanel.add(ReplayButton);
-		OptionPanel.add(new Blank(3));
+		OptionPanel.add(new Blank(2));
+		OptionPanel.add(RandomButton);
 
+		OptionPanel.add(new Blank(1));
 		WordsLabel = new JLabel("请选择操作：");
 		OptionPanel.add(new Blank(2));
 		OptionPanel.add(WordsLabel);
@@ -254,6 +292,9 @@ class MyFrame extends JFrame {
 		// 开始时不能点击按钮和下拉框，点击屏幕后继续
 		OptionButton.setEnabled(false);
 		StartButton.setEnabled(false);
+		RandomButton.setEnabled(false);
+		ResetButton.setEnabled(false);
+		ReplayButton.setEnabled(false);
 		box.setEnabled(false);
 		insert.setEnabled(false);
 		search.setEnabled(false);
@@ -265,7 +306,11 @@ class MyFrame extends JFrame {
 			public void mouseClicked(MouseEvent e) {
 				OptionButton.setEnabled(true);
 				StartButton.setEnabled(true);
+				ResetButton.setEnabled(true);
+				RandomButton.setEnabled(true);
+				ReplayButton.setEnabled(true);
 				box.setEnabled(true);
+				box.setEditable(true);
 				insert.setEnabled(true);
 				search.setEnabled(true);
 				delete.setEnabled(true);
@@ -283,17 +328,14 @@ class MyFrame extends JFrame {
 
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
 				boolean b = true;
 				while (true) {
 					try {
 						Thread.sleep(300);
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					welcome.repaint();
-					// DemoPanel.repaint();
 					b = !b;
 					welcome.setToPanit(b);
 				}

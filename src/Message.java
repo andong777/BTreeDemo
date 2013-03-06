@@ -5,7 +5,8 @@ public class Message {
 	//非法输入
 	public static void IllegalInput(String s){
 		JOptionPane.showMessageDialog(null,
-				"您输入的数据： “" + s + "” 不符合要求！\n请重新输入。");
+				"您输入的数据： “" + s + "” 不符合要求！\n" +
+						"合法的数据为0~99的整数。\n请重新输入。");
 	}
 	//需要至少有一个元素
 	public static void AtLeastOneElement(){
@@ -18,7 +19,7 @@ public class Message {
 	}
 	//未找到此元素
 	public static void NoSuchElement(int v){
-		JOptionPane.showMessageDialog(null, "未找到大小为"+v+"的元素！搜索结束");
+		JOptionPane.showMessageDialog(null, "未找到大小为"+v+"的元素！");
 	}
 	//搜索结束
 	public static void EndSearch(){
@@ -30,6 +31,6 @@ public class Message {
 	}
 	//先选择m的值再进行操作
 	public static void SelectMFirst(){
-		JOptionPane.showMessageDialog(null, "请先选择m值，然后点击设置继续");
+		JOptionPane.showMessageDialog(null, "请先选择B树的叉数，然后点击应用");
 	}
 }
